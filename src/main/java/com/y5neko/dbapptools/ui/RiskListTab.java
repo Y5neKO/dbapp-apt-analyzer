@@ -21,6 +21,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.stream.Collectors;
 
 public class RiskListTab extends BorderPane {
 
@@ -34,6 +35,11 @@ public class RiskListTab extends BorderPane {
     private Button queryBtn;
     private Button stopBtn;
     private TextArea responseArea;
+
+    // attackgrades 多选框
+    private CheckBox cbHigh;
+    private CheckBox cbMedium;
+    private CheckBox cbLow;
 
     private volatile int totalCount = 0;
     private volatile int pendingRequests = 0;
@@ -62,6 +68,15 @@ public class RiskListTab extends BorderPane {
         HBox endBox = new HBox(5, endLabel, endDatePicker, endTimeField);
         endBox.setAlignment(Pos.CENTER_LEFT);
 
+        // attackgrades 多选
+        Label gradeLabel = new Label("攻击等级:");
+        cbHigh = new CheckBox("高");
+        cbMedium = new CheckBox("中");
+        cbLow = new CheckBox("低");
+
+        HBox gradeBox = new HBox(10, gradeLabel, cbHigh, cbMedium, cbLow);
+        gradeBox.setAlignment(Pos.CENTER_LEFT);
+
         queryBtn = new Button("查询");
         queryBtn.setOnAction(e -> sendRiskListRequest());
 
@@ -72,7 +87,7 @@ public class RiskListTab extends BorderPane {
         HBox buttonBox = new HBox(10, queryBtn, stopBtn);
         buttonBox.setAlignment(Pos.CENTER_LEFT);
 
-        VBox controlBox = new VBox(10, startBox, endBox, buttonBox);
+        VBox controlBox = new VBox(10, startBox, endBox, gradeBox, buttonBox);
         controlBox.setPadding(new Insets(15));
 
         responseArea = new TextArea();
@@ -212,7 +227,7 @@ public class RiskListTab extends BorderPane {
         jsonBody.put("maxaccessid", null);
         jsonBody.put("assetChildNodes", new Object[0]);
         jsonBody.put("combined", 1);
-        jsonBody.put("attackgrades", null);
+        jsonBody.put("attackgrades", getSelectedAttackGrades()); // 改成动态
         jsonBody.put("attackstatuss", null);
         jsonBody.put("original", null);
         jsonBody.put("accesssubtype", new Object[0]);
@@ -242,6 +257,19 @@ public class RiskListTab extends BorderPane {
         jsonBody.put("fromtype", null);
         jsonBody.put("direction", null);
         return jsonBody;
+    }
+
+    // 获取选中的 attackgrades
+    private Object getSelectedAttackGrades() {
+        List<Integer> selected = new ArrayList<>();
+        if (cbHigh.isSelected()) selected.add(3);
+        if (cbMedium.isSelected()) selected.add(2);
+        if (cbLow.isSelected()) selected.add(1);
+        // 全选或全不选时返回 null
+        if (selected.size() == 0 || selected.size() == 3) {
+            return null;
+        }
+        return selected;
     }
 
     private LocalDateTime parseDateTime(DatePicker datePicker, TextField timeField) {
