@@ -249,9 +249,13 @@ public class LoginTab extends BorderPane {
                 setLoginBtn(true);
                 JSONObject jsonObject = JSONObject.parseObject(response);
                 String jwtToken = jsonObject.getString("token");
+                if (jwtToken != null && jwtToken.startsWith("eyJ")) {
                 AccountInfo account = new AccountInfo(username, password, jwtToken, loginUrl);
                 AccountStorage.saveAccount(account);
                 appendLog("登录成功，JWT Token已保存");
+                } else {
+                    appendLog("登录失败，JWT Token不存在");
+                }
             }
 
             @Override
